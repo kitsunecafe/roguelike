@@ -1,4 +1,4 @@
-import { ECS } from 'https://esm./run/wolf-ecs'
+import { ECS } from 'https://esm.run/wolf-ecs'
 
 export const ecs = new ECS()
 const { createEntity, defineComponent } = ecs.bind()

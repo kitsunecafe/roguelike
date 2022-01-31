@@ -21,13 +21,9 @@ const height = 36
 
 const display = pipe(
   Display.init,
-  tap(console.log),
   Display.attach(disp),
-  tap(console.log),
   Display.fillBuffer('.'),
-  tap(console.log),
   Display.draw(Math.floor(width / 2), Math.floor(height / 2), '@'),
-  tap(console.log),
   Display.render,
 )(width, height)
 

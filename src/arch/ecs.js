@@ -1,13 +1,14 @@
-import { ECS } from 'https://esm./run/wolf-ecs'
+import { ECS } from 'https://esm.run/wolf-ecs'
+import { curry } from 'https://esm.run/rambda'
 
 export const ecs = new ECS()
-export { createEntity, defineComponent } from ecs.bind()
-// export const createEntity = ecs.createEntity
+const { createEntity, defineComponent } = ecs.bind()
+export { createEntity, defineComponent }
 
-export const withComponent = ({ component, properties }, entity) => {
+export const withComponent = curry(({ component, properties }, entity) => {
   Object.entries(properties).forEach(([key, value]) => {
-    component[key][id] = value
+    component[key][entity] = value
   })
 
   return entity
-}
+})

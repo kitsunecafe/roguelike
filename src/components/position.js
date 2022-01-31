@@ -1,3 +1,4 @@
+import { types } from 'https://esm.run/wolf-ecs'
 import { defineComponent } from '../arch/ecs.js'
 
 const component = defineComponent({

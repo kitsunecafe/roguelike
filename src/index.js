@@ -1,29 +1,47 @@
-import { pipe, tap } from 'https://esm.run/rambda'
-import { createEntity, withComponent } from './arch/ecs.js'
+import { ECS } from 'https://esm.run/wolf-ecs'
+import { __, flip, pipe, reduce, values } from 'https://esm.run/ramda'
+import * as World from './arch/world.js'
 import Position from './components/position.js'
-import * as Display from './arch/display.js'
-import ml from './utils/jml.js'
+import Renderable from './components/renderable.js'
+import RenderSystem from './systems/render.js'
+import InputSystem from './systems/input.js'
+import * as Components from './components/index.js'
+import Display from './arch/display.js'
+import StringService from './services/strings.js'
 
 const q = document.querySelector.bind(document)
 
-const player = pipe(
-  createEntity,
-  withComponent(Position(0, 0))
-)()
-
 const main = q('main')
-const disp = ml('pre', { class: 'display' })
-console.log(disp)
-main.append(disp)
 
 const width = 64
 const height = 36
 
-const display = pipe(
-  Display.init,
-  Display.attach(disp),
-  Display.fillBuffer('.'),
-  Display.draw(Math.floor(width / 2), Math.floor(height / 2), '@'),
-  Display.render,
-)(width, height)
+const stringService = new StringService()
 
+const defineComponents = reduce(
+  flip(World.defineComponent),
+  __,
+  values(Components)
+)
+
+const world = pipe(
+  World.init,
+  World.addService('string', stringService),
+  defineComponents
+)(new ECS())
+
+const player = pipe(
+  World.createEntity,
+  World.withComponent(Position, { x: 1, y: 1 }),
+  World.withComponent(Renderable, { glyph: stringService.add('@') })
+)(world)
+
+const display = new Display(width, height).fill('.').attach(main)
+
+const state = {
+  world,
+  display
+}
+
+InputSystem(state)
+RenderSystem(state)

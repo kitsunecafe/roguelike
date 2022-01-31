@@ -1,32 +1,47 @@
-import { assoc, bind, curry, join, lensProp, over, pipe, replace, tap, update } from 'https://esm.run/rambda'
+import ml from '../utils/jml.js'
 
-export const init = curry((width, height) => ({ width, height, buffer: new Array(width * height) }))
+export default class Display extends Array {
+  constructor(width, height) {
+    super(width * height)
+    this.width = width
+    this.height = height
+    this.element = ml('pre', { class: 'display' })
+  }
 
-export const fillBuffer = curry((value, { buffer, ...display }) => ({
-	...display,
-	buffer: buffer.fill(value)
-}))
+  attach(container) {
+    if (this.container) {
+      this.container.removeChild(this.element)
+    }
 
-export const attach = curry((container, display) => pipe(
-	tap(bind(container.append, container)),
-	assoc('container', container)
-)(display))
+    container.append(this.element)
+    this.container = container
 
-const getCoord = curry((i, width) => ([i % width, Math.floor(i / width)]))
-const index = curry((x, y, width) => x + width * y)
-const getData = curry((x, y, { buffer, width }) => indexOf(index(x, y, width), buffer))
+    return this
+  }
 
-export const draw = curry((x, y, value, display) =>
-	over(
-		lensProp('buffer'),
-		update(index(x, y, display.width), value),
-		display
-	)
-)
+  coord(i) {
+    return [i % this.width, Math.floor(i / this.width)]
+  }
 
-export const render = tap(({ container, buffer, width }) => {
-	container.innerHTML = pipe(
-		join(''),
-		replace(new RegExp(`(.{${width}})`, 'g'), '$1<br />')
-	)(buffer)
-})
+  index(x, y) {
+    return x + this.width * y
+  }
+
+  get(x, y) {
+    return this[this.index(x, y)]
+  }
+
+  draw(x, y, value) {
+    this[this.index(x, y)] = value
+    return this
+  }
+
+  render() {
+    this.element.innerHTML = this.join('').replace(
+      new RegExp(`(.{${this.width}})`, 'g'),
+      '$1<br />'
+    )
+
+    return this
+  }
+}

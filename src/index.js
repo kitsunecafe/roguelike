@@ -3,7 +3,7 @@ import { __, flip, pipe, map, reduce, values } from 'https://esm.run/ramda'
 import * as World from './arch/world.js'
 import Position from './components/position.js'
 import Renderable from './components/renderable.js'
-import { UsesInput } from './components/tags.js'
+import { Impassable, UsesInput } from './components/tags.js'
 import * as Components from './components/index.js'
 import * as Systems from './systems/index.js'
 import Display from './arch/display.js'
@@ -37,6 +37,13 @@ const player = pipe(
   World.withTag(UsesInput)
 )(world)
 
+const enemy = pipe(
+  World.createEntity,
+  World.withComponent(Position, { x: 5, y: 1 }),
+  World.withComponent(Renderable, { glyph: stringService.add('%') }),
+  World.withTag(Impassable)
+)(world)
+
 const display = new Display(width, height).fill('.').attach(main)
 
 const state = {
@@ -44,4 +51,4 @@ const state = {
   display
 }
 
-map(system => system(state), values(Systems))
+map((system) => system(state), values(Systems))

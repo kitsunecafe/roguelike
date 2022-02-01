@@ -7,10 +7,8 @@ import { movement$ } from '../arch/input.js'
 import * as Vector from '../utils/math/vector.js'
 
 export default ({ world }) => {
-  const [Position, UsesInput] = World.getComponent([
-    PositionKey,
-    UsesInputKey
-  ],
+  const [Position, UsesInput] = World.getComponent(
+    [PositionKey, UsesInputKey],
     world
   )
 

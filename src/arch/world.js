@@ -2,13 +2,13 @@ import { Map } from 'https://esm.run/immutable'
 import {
   curry,
   curryN,
-  dropLast,
   flip,
   invoker,
-  last,
   lensProp,
   map,
-  over
+  of,
+  over,
+  unless
 } from 'https://esm.run/ramda'
 
 const set = invoker(2, 'set')
@@ -29,15 +29,15 @@ export const addService = curry((key, value, world) => ({
 
 export const createEntity = (world) => ({ id: world.createEntity(), world })
 
-export const getComponents = (...args) => {
-  const world = last(args)
-  const components = dropLast(1, args)
+export const getComponent = (component, world) => {
+  const components = unless(Array.isArray, of, component)
   const getComponent = flip(get)(world.components)
   return map(getComponent, components)
 }
-export const withComponent = curryN(3, (key, value, { id, world } = {}) => {
+export const withComponent = curryN(3, (key, value, { id, world }) => {
   const component = get(key, world.components)
   world.addComponent(id, component)
+
   if (isPrimitive(value)) {
     component[id] = value
   } else {
@@ -45,6 +45,13 @@ export const withComponent = curryN(3, (key, value, { id, world } = {}) => {
       component[k][id] = v
     })
   }
+
+  return { id, world }
+})
+
+export const withTag = curryN(2, (key, { id, world }) => {
+  const component = get(key, world.components)
+  world.addComponent(id, component)
 
   return { id, world }
 })

@@ -1,12 +1,15 @@
+import * as World from '../arch/world.js'
 import { time$ } from '../arch/clock.js'
-import PositionComponent from '../components/position.js'
-import RenderableComponent from '../components/renderable.js'
+import PositionKey from '../components/position.js'
+import RenderableKey from '../components/renderable.js'
 
 export default ({ world, display }) => {
-  const Renderable = world.components.get(RenderableComponent)
-  const Position = world.components.get(PositionComponent)
-  const services = world.services
-  const stringStorage = services.get('string')
+  const [Renderable, Position] = World.getComponent([
+    RenderableKey,
+    PositionKey
+  ], world)
+
+  const stringStorage = world.services.get('string')
 
   time$.observe({
     value() {

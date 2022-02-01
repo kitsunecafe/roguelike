@@ -10,7 +10,8 @@ export const keyUp$ = fromKeyEvent('keyup')
 export const observeKey = (key) =>
   Kefir.merge([
     keyDown$.filter((k) => k === key).map((_) => 1),
-    keyUp$.filter((k) => k === key).map((_) => 0)
+    keyUp$.filter((k) => k === key).map((_) => 0),
+    Kefir.constant(0)
   ])
 
 export const observeAxis = (pos, neg) =>
@@ -26,4 +27,5 @@ export const Keys = {
   d: 68
 }
 
-export const movement$ = observeVector(Keys.d, Keys.a, Keys.w, Keys.s)
+// W and S reversed for terminal output
+export const movement$ = observeVector(Keys.d, Keys.a, Keys.s, Keys.w)

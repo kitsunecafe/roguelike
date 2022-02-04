@@ -1,9 +1,9 @@
-export default class StringService extends Array {
+export default class Storage extends Array {
   constructor(maxSize = 128, initSize = 16) {
     super(initSize)
     this.maxSize = maxSize
     this._rm = []
-    this._id = 0
+    this._id = 1
   }
 
   _getNextID() {
@@ -12,7 +12,7 @@ export default class StringService extends Array {
     } else if (this._id < this.maxSize) {
       return this._id++
     } else {
-      throw new Error('StringService: Too many stored values')
+      throw new Error('StorageService: Too many values')
     }
   }
 

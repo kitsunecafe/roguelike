@@ -1,5 +1,6 @@
 import Kefir from 'https://esm.run/kefir'
 import * as Vector from '../utils/math/vector.js'
+import { time$ } from './clock.js'
 
 const fromKeyEvent = (ev) =>
   Kefir.fromEvents(document, ev).map((ev) => ev.keyCode)
@@ -27,5 +28,6 @@ export const Keys = {
   d: 68
 }
 
-// W and S reversed for terminal output
-export const movement$ = observeVector(Keys.d, Keys.a, Keys.s, Keys.w)
+export const movement$ = observeVector(Keys.a, Keys.d, Keys.s, Keys.w)
+  .sampledBy(time$)
+  .throttle(25)

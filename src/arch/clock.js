@@ -1,4 +1,5 @@
 import Kefir from 'https://esm.run/kefir'
+import { flip, subtract } from 'https://esm.run/ramda'
 
 export const time$ = Kefir.stream((emitter) => {
   const update = (t) => {
@@ -12,3 +13,5 @@ export const time$ = Kefir.stream((emitter) => {
     cancelAnimationFrame(id)
   }
 })
+
+export const deltaTime$ = time$.diff(flip(subtract))

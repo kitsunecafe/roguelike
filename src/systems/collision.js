@@ -3,18 +3,18 @@ import { curry } from 'https://esm.run/ramda'
 import { time$ } from '../arch/clock.js'
 import * as World from '../arch/world.js'
 import * as Vector from '../utils/math/vector.js'
-import PositionKey from '../components/position.js'
-import DisplacementKey from '../components/messages/displacement.js'
-import FixedCollisionKey from '../components/messages/fixed-collision.js'
-import DynamicCollisionKey from '../components/messages/dynamic-collision.js'
 import {
+  Position as PositionKey,
+  Velocity as VelocityKey,
+  FixedCollision as FixedCollisionKey,
+  DynamicCollision as DynamicCollisionKey,
   Impassable as ImpassableKey,
   Fixed as FixedKey
-} from '../components/tags.js'
+} from '../components/index.js'
 
 export default ({ world }) => {
   const [
-    Displacement,
+    Velocity,
     Position,
     FixedCollision,
     DynamicCollision,
@@ -22,7 +22,7 @@ export default ({ world }) => {
     Fixed
   ] = World.getComponent(
     [
-      DisplacementKey,
+      VelocityKey,
       PositionKey,
       FixedCollisionKey,
       DynamicCollisionKey,
@@ -35,10 +35,7 @@ export default ({ world }) => {
   const staticEntities = world.createQuery(Position, Impassable, Fixed)
 
   const revertPosition = curry((collisionType, id, other) => {
-    Position.x[id] -= Displacement.x[id]
-    Position.y[id] -= Displacement.y[id]
-
-    world.removeComponent(id, Displacement)
+    world.removeComponent(id, Velocity)
 
     World.withComponent(collisionType, { with: other }, { id, world })
   })
@@ -47,13 +44,14 @@ export default ({ world }) => {
   const revertDynamic = revertPosition(DynamicCollisionKey)
 
   const getPosition = Vector.fromComponent(Position)
-  const getDisp = Vector.fromComponent(Displacement)
+  const getDisp = Vector.fromComponent(Velocity)
 
-  const eqPosition = (a, b) => Vector.eq(getPosition(a), getPosition(b))
+  const willCollide = (a, b) =>
+    Vector.eq(Vector.add(getPosition(a), getDisp(a)), getPosition(b))
 
   time$.observe({
     value(input) {
-      const movingEntities = world.createQuery(Position, Displacement)
+      const movingEntities = world.createQuery(Position, Velocity)
       const dynamicEntities = world.createQuery(
         Position,
         Impassable,
@@ -65,7 +63,7 @@ export default ({ world }) => {
         world.removeComponent(a, DynamicCollision)
 
         staticEntities.forEach((b) => {
-          if (eqPosition(a, b)) {
+          if (willCollide(a, b)) {
             revertFixed(a, b)
           }
         })
@@ -73,7 +71,7 @@ export default ({ world }) => {
         dynamicEntities.forEach((b) => {
           if (a === b) return
 
-          if (eqPosition(a, b)) {
+          if (willCollide(a, b)) {
             revertDynamic(a, b)
           }
         })

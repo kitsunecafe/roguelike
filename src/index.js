@@ -1,13 +1,14 @@
 import { ECS } from 'https://esm.run/wolf-ecs'
-import { __, flip, pipe, map, reduce, values } from 'https://esm.run/ramda'
+import Eev from 'https://esm.run/eev'
+import { __, flip, map, pipe, reduce } from 'https://esm.run/ramda'
+
 import * as World from './arch/world.js'
-import Position from './components/position.js'
-import Renderable from './components/renderable.js'
-import { Impassable, UsesInput } from './components/tags.js'
+
 import * as Components from './components/index.js'
-import * as Systems from './systems/index.js'
-import Display from './arch/display.js'
-import StringService from './services/strings.js'
+import { Renderer } from './arch/renderer.js'
+
+import Systems from './systems/index.js'
+import * as Map from './utils/map.js'
 
 const q = document.querySelector.bind(document)
 
@@ -16,39 +17,57 @@ const main = q('main')
 const width = 64
 const height = 36
 
-const stringService = new StringService()
-
 const defineComponents = reduce(
   flip(World.defineComponent),
   __,
-  values(Components)
+  Object.values(Components)
 )
 
-const world = pipe(
-  World.init,
-  World.addService('string', stringService),
-  defineComponents
-)(new ECS())
+const renderer = new Renderer()
+renderer.attach(main)
 
-const player = pipe(
+const world = pipe(World.init, defineComponents)(new ECS())
+
+const generator = Map.init(width, height)
+Map.create(generator)
+  .map((tile) => {
+    const { x, y } = tile
+    pipe(
+      World.createEntity,
+      World.withComponent(Components.Position, { x, y: 0, z: y }),
+      World.withTag(Components.Fixed)
+    )(world)
+
+    return tile
+  })
+  .bufferWhile()
+  .observe({
+    value(tiles) {
+      renderer.createMap(tiles)
+    }
+  })
+
+const [x, z] = generator.getRooms()[0].getCenter()
+
+const object = pipe(
   World.createEntity,
-  World.withComponent(Position, { x: 1, y: 1 }),
-  World.withComponent(Renderable, { glyph: stringService.add('@') }),
-  World.withTag(UsesInput)
+  World.withComponent(Components.Position, { x, y: 0, z }),
+  World.withComponent(Components.Rotation, { x: 0, y: 0, z: 0 }),
+  World.withComponent(Components.Motor, { power: 5, torque: 0.5 }),
+  World.withComponent(Components.Mesh, { id: renderer.camera.id }),
+  World.withComponent(Components.Collider, { id: renderer.createCollider() }),
+  World.withTag(Components.UsesInput)
 )(world)
 
-const enemy = pipe(
-  World.createEntity,
-  World.withComponent(Position, { x: 5, y: 1 }),
-  World.withComponent(Renderable, { glyph: stringService.add('%') }),
-  World.withTag(Impassable)
-)(world)
+const collider = world.components.get(Components.Collider).id[object.id]
+console.log(renderer.colliders[collider])
 
-const display = new Display(width, height).fill('.').attach(main)
+const events = new Eev()
 
 const state = {
   world,
-  display
+  renderer,
+  events
 }
 
-map((system) => system(state), values(Systems))
+map((system) => system(state), Systems)

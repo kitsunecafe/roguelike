@@ -1,4 +1,5 @@
-import { time$ } from '../arch/clock.js'
+import Babylon from 'https://esm.run/babylonjs@5.0.0-beta.6'
+import { deltaTime$ } from '../arch/clock.js'
 import * as World from '../arch/world.js'
 import {
   Mesh as MeshKey,
@@ -13,18 +14,22 @@ export default ({ world, renderer }) => {
     world
   )
 
-  time$.observe({
-    value(input) {
-      const dispQuery = world.createQuery(Velocity, Position, Motor)
+  deltaTime$.observe({
+    value(dt) {
+      const dispQuery = world.createQuery(Velocity, Position, Mesh, Motor)
 
-      dispQuery.forEach((entity) => {
-        const mesh = renderer.scene.getObjectById(Mesh.id[entity])
-        mesh.translateZ(Velocity.z[entity] * Motor.power[entity])
+      dispQuery.forEach((id) => {
+        const mesh = renderer.scene.getMeshByUniqueID(Mesh.id[id])
 
-        Position.x[entity] = mesh.position.x
-        Position.z[entity] = mesh.position.z
+        const pos = mesh.forward.scale(Velocity.z[id]).normalize().scale(Motor.power[id] * dt)
+        mesh.moveWithCollisions(pos, 1, Babylon.Space.WORLD)
 
-        world.removeComponent(entity, Velocity)
+        Position.x[id] = pos.x
+        Position.y[id] = pos.y
+        Position.z[id] = pos.z
+
+
+        world.removeComponent(id, Velocity)
       })
     }
   })

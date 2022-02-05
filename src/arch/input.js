@@ -28,6 +28,6 @@ export const Keys = {
   d: 68
 }
 
-export const movement$ = observeVector(Keys.a, Keys.d, Keys.s, Keys.w)
+export const movement$ = observeVector(Keys.d, Keys.a, Keys.w, Keys.s)
   .sampledBy(time$)
   .throttle(25)

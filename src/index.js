@@ -52,9 +52,9 @@ const playerModel = pipe(
 const light = new Babylon.PointLight('light', new Babylon.Vector3(x, 10, z), renderer.scene)
 light.parent = playerModel.mesh
 light.specular = new Babylon.Color3(0.1, 0.1, 0.1)
-// light.intensity = 0.75
-// light.diffuse = new Babylon.Color3(1, 0.8, 0.6)
-// light.range = 500
+light.intensity = 0.75
+light.diffuse = new Babylon.Color3(1, 0.8, 0.6)
+light.range = 500
 
 const playerEntity = pipe(
   World.createEntity,

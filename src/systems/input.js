@@ -1,6 +1,5 @@
 import * as World from '../arch/world.js'
 import {
-  Position as PositionKey,
   Velocity as VelocityKey,
   Rotate as RotateKey,
   UsesInput as UsesInputKey
@@ -8,8 +7,8 @@ import {
 import { movement$ } from '../arch/input.js'
 
 export default ({ world }) => {
-  const [Position, UsesInput] = World.getComponent(
-    [PositionKey, UsesInputKey],
+  const [UsesInput] = World.getComponent(
+    [UsesInputKey],
     world
   )
 
@@ -21,7 +20,7 @@ export default ({ world }) => {
 
   movement$.observe({
     value(input) {
-      const inputQuery = world.createQuery(Position, UsesInput)
+      const inputQuery = world.createQuery(UsesInput)
 
       inputQuery.forEach((entity) => {
         if (input.y !== 0) {
